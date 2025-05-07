@@ -1,5 +1,4 @@
-import { livro } from "../models/index.js";
-import { autor } from "../models/index.js";
+import { autor, livro } from "../models/index.js";
 import NaoEncontrado from "../erros/NaoEncontrado.js";
 
 class LivroController{
@@ -73,22 +72,54 @@ class LivroController{
         }
     }
 
-    static buscaPorEditora = async (req, res, next) => {
-        const editora = req.query.editora
+    static listarLivroPorFiltro = async (req, res, next) => {
+        
         try {
-            const livroEncontrado = await livro.find({editora: editora})
-            if(livroEncontrado.length > 0){
-                res.status(200).json({message: `livro encontrado`, item: livroEncontrado})
+            const busca = await processaBusca(req.query)
+            if(busca){
+                const livroEncontrado = await livro.find(busca).populate("autor")
+                if(livroEncontrado.length > 0){
+                    res.status(200).json({message: `livro encontrado`, item: livroEncontrado})
+                } else {
+                    next(new NaoEncontrado("Editora não encontrada"))
+                }
             } else {
-                next(new NaoEncontrado("Editora não encontrada"))
+                res.status(200).send([])
             }
-            
+      
         } catch (error) {
             next(error)
         }
     }
 
 
+}
+
+
+async function processaBusca(params){
+    const {editora, titulo, minPaginas, maxPaginas, nomeAutor} = params
+
+    let busca = {}
+
+    if(editora) busca.editora = {$regex: editora, $options: "i"}
+    if(titulo) busca.titulo = {$regex: titulo, $options: "i"}
+
+    if(minPaginas || maxPaginas) busca.paginas = {}
+
+    // maior ou igual que
+    if(minPaginas) busca.paginas.$gte = minPaginas
+    // menor ou igual que
+    if(maxPaginas) busca.paginas.$lte = maxPaginas
+
+    if(nomeAutor) {
+        const buscaAutor = await autor.findOne({nome: nomeAutor})
+        if(buscaAutor !== null){
+            busca.autor = buscaAutor._id
+        } else {
+            busca = null
+        }
+    }
+    return busca
 }
 
 export default LivroController
