@@ -7,8 +7,11 @@ class LivroController{
     // static me permite usar os metodos da classe sem instanciar ela
     static listarLivros = async (req, res, next) => {
         try {
-            const listaLivros = await livro.find({})
-            res.status(200).send(listaLivros)       
+            const buscaLivros = livro.find()
+
+            req.resultado = buscaLivros
+
+            next()
         } catch (error) {
             next(error)
         }
@@ -77,12 +80,11 @@ class LivroController{
         try {
             const busca = await processaBusca(req.query)
             if(busca){
-                const livroEncontrado = await livro.find(busca).populate("autor")
-                if(livroEncontrado.length > 0){
-                    res.status(200).json({message: `livro encontrado`, item: livroEncontrado})
-                } else {
-                    next(new NaoEncontrado("Editora não encontrada"))
-                }
+                const livroEncontrado = livro.find(busca)
+                
+                req.resultado = livroEncontrado
+                
+                next()
             } else {
                 res.status(200).send([])
             }

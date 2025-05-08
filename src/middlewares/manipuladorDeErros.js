@@ -15,7 +15,7 @@ function manipuladorDeErros(erro, req, res, next) {
         console.log('entrei nesse')
         new ErroValidacao(erro).enviarResposta(res)
     }
-    else if (erro instanceof NaoEncontrado) {
+    else if (erro instanceof ErroBase) {
         erro.enviarResposta(res)
     }
     else {

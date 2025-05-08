@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-
+import autopopulate from "mongoose-autopopulate";
 
 // schema é um esqueleto da minha model no banco
 const livroSchema = new mongoose.Schema({
@@ -14,9 +14,10 @@ const livroSchema = new mongoose.Schema({
             message: "O número de páginas deve estar entre 10 e 10000!"
         }
     },
-    autor: {type: mongoose.Schema.Types.ObjectId, ref: 'autores', required: [true, 'O autor(a) é obrigatório!']}
+    autor: {type: mongoose.Schema.Types.ObjectId, ref: 'autores', required: [true, 'O autor(a) é obrigatório!'], autopopulate: true}
 }, { versionKey: false })
 
+livroSchema.plugin(autopopulate)
 const livro = mongoose.model('livros', livroSchema)
 
 export default livro
